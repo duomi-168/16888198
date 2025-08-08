@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>秘密基地</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', 'Heiti SC', sans-serif;
+        }
+        
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: white;
+            overflow-x: hidden;
+            position: relative;
+            cursor: pointer;
+        }
+        
+        /* 视频背景样式 */
+        .video-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+        }
+        
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: -1;
+        }
+        
+        .sound-hint {
+            position: fixed;
+            bottom: 40px;
+            padding: 15px 30px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 50px;
+            font-size: 1.1rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+        }
+        
+        .sound-hint.show {
+            opacity: 1;
+        }
+        
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        header {
+            margin-bottom: 20px;
+            animation: fadeIn 1s ease-out;
+        }
+        
+        h1 {
+            font-size: 3.5rem;
+            margin-bottom: 15px;
+            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            position: relative;
+            display: inline-block;
+        }
+        
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 10%;
+            width: 80%;
+            height: 4px;
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            border-radius: 2px;
+            transform: scaleX(0);
+            transform-origin: center;
+            transition: transform 0.5s ease;
+        }
+        
+        header:hover h1::after {
+            transform: scaleX(1);
+        }
+        
+        .subtitle {
+            font-size: 1.4rem;
+            max-width: 800px;
+            margin: 0 auto 20px;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.85);
+        }
+        
+        /* 小标题样式 */
+        .small-title {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin: 10px 0;
+            font-weight: 500;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* 按钮组样式 */
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin: 20px 0 40px;
+            width: 100%;
+        }
+        
+        /* 动态按钮核心样式 */
+        .btn {
+            padding: 16px 40px;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            will-change: transform;
+        }
+        
+        .btn span {
+            display: inline-block;
+            transition: transform 0.3s ease, text-shadow 0.3s ease;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .btn:hover span {
+            transform: translateY(-6px);
+            text-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: all 0.6s ease;
+            z-index: 1;
+        }
+        
+        .btn:hover::before {
+            left: 100%;
+        }
+        
+        .btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn:active {
+            transform: translateY(2px) scale(0.98);
+        }
+        
+        .btn-yes {
+            background: linear-gradient(to right, #4CAF50, #2E7D32);
+            color: white;
+            box-shadow: 0 5px 15px rgba(46, 125, 50, 0.4);
+        }
+        
+        .btn-no {
+            background: linear-gradient(to right, #f44336, #c62828);
+            color: white;
+            box-shadow: 0 5px 15px rgba(198, 40, 40, 0.4);
+        }
+        
+        footer {
+            margin-top: 30px;
+            padding: 20px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.1rem;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes btnSlideIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .btn, .small-title {
+            animation: btnSlideIn 0.5s ease forwards;
+            opacity: 0;
+        }
+        
+        /* 元素动画延迟 */
+        .btn-yes { animation-delay: 0.2s; }
+        .small-title { animation-delay: 0.4s; }
+        .btn-no { animation-delay: 0.6s; }
+        
+        @media (max-width: 768px) {
+            h1 { font-size: 2.5rem; }
+            .subtitle { font-size: 1.1rem; }
+            .btn { width: 80%; }
+        }
+    </style>
+</head>
+<body>
+    <video id="bgVideo" class="video-bg" autoplay loop playsinline preload="auto" poster="video-cover.jpg">
+        <source src="background.mp4" type="video/mp4">
+        <source src="background.webm" type="video/webm">
+        您的浏览器不支持视频背景
+    </video>
+    <div class="overlay"></div>
+    
+
+
+    <div class="container">
+        <header>
+            <h1>甜甜的后花园㊙</h1>
+            <p class="subtitle">御姐、少F、萝莉、甜妹等...</p >
+            <p class="subtitle">小孩子别进，谢谢配合。</p >
+            
+            <div class="button-group">
+                <!-- 第一个按钮：跳转QQ群 -->
+                <button class="btn btn-yes" onclick="redirectToYes()">
+                    <i class="fas fa-check"></i>
+                    <span>立即进甜甜的涩涩Q群</span>
+                </button>
+                
+                <!-- 小标题 -->
+                <p class="small-title">↓快手图文代发赚米↓</p>
+                <p class="small-title">一天3-100，学生也可以做，无任何套路，重要的是日结！</p>
+                <!-- 第二个按钮：点击跳转到图片展示页 -->
+                <button class="btn btn-no" onclick="redirectToImagePage()">
+                    <i class="fas fa-image"></i>
+                    <span>点我立即代发赚米</span>
+                </button>
+            </div>
+        </header>
+    </div>
+
+    <script>
+        const bgVideo = document.getElementById('bgVideo');
+        const soundHint = document.querySelector('.sound-hint');
+        let soundActivated = false;
+
+        window.onload = function() {
+            bgVideo.muted = false;
+            playVideoWithSound();
+        };
+
+        function playVideoWithSound() {
+            bgVideo.play().then(() => {
+                if (bgVideo.muted) {
+                    soundHint.classList.add('show');
+                } else {
+                    soundHint.classList.remove('show');
+                    soundActivated = true;
+                }
+            }).catch(error => {
+                soundHint.classList.add('show');
+            });
+        }
+
+        document.body.addEventListener('click', function() {
+            if (!soundActivated) {
+                bgVideo.muted = false;
+                playVideoWithSound();
+            }
+        });
+
+        // 第一个按钮跳转QQ群
+        function redirectToYes() {
+            window.location.href = 'https://qm.qq.com/q/lYgSgfTmik';
+        }
+        
+        // 第二个按钮跳转到图片展示页
+        function redirectToImagePage() {
+            window.location.href = 'image-viewer.html'; // 跳转到单独的图片页面
+        }
+    </script>
+</body>
+</html>
